@@ -54,8 +54,9 @@ $(SQLITE_OUT)/sqlite3.o : $(SQLITE_UNPACKED)
 	perl -p -e "s/sqlite3_api;/sqlite3_api = 0;/g" \
 	    $(SQLITE_SOURCE)/sqlite3ext.h > $(SQLITE_OUT)/sqlite3ext.h
 # insert a code for loading extension functions
+	echo "typedef struct sqlite3 sqlite3; int RegisterExtensionFunctions(sqlite3 *db);" > $(SQLITE_OUT)/sqlite3.c
 	perl -p -e "s/^opendb_out:/  if(!db->mallocFailed && rc==SQLITE_OK){ rc = RegisterExtensionFunctions(db); }\nopendb_out:/;" \
-	    $(SQLITE_SOURCE)/sqlite3.c > $(SQLITE_OUT)/sqlite3.c
+	    $(SQLITE_SOURCE)/sqlite3.c >> $(SQLITE_OUT)/sqlite3.c
 	cat src/main/ext/*.c >> $(SQLITE_OUT)/sqlite3.c
 	$(CC) -o $@ -c $(CCFLAGS) \
 	    -DSQLITE_ENABLE_LOAD_EXTENSION=1 \
@@ -140,6 +141,9 @@ linux-ppc64: $(SQLITE_UNPACKED) jni-header
 
 mac64: $(SQLITE_UNPACKED) jni-header
 	docker run -it $(DOCKER_RUN_OPTS) -v $$PWD:/workdir -e CROSS_TRIPLE=x86_64-apple-darwin multiarch/crossbuild make clean-native native OS_NAME=Mac OS_ARCH=x86_64
+
+arm64: $(SQLITE_UNPACKED) jni-header
+	docker run -it $(DOCKER_RUN_OPTS) -v $$PWD:/workdir -e CROSS_TRIPLE=arm64-apple-darwin multiarch/crossbuild make clean-native native OS_NAME=Mac OS_ARCH=arm64
 
 # deprecated
 mac32: $(SQLITE_UNPACKED) jni-header
